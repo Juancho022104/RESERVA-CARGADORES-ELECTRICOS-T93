@@ -23,15 +23,15 @@
   function showModal({ type, title, message }) {
     const iconWrap = el('modalIconWrap');
     const icon = el('modalIcon');
-    iconWrap.className = 'w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4';
+    iconWrap.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4';
     if (type === 'success') {
-      iconWrap.classList.add('bg-emerald-500/15', 'border', 'border-emerald-500/30');
+      iconWrap.classList.add('bg-emerald-50', 'border', 'border-emerald-200');
       icon.setAttribute('data-lucide', 'check-circle-2');
-      icon.className = 'w-7 h-7 text-emerald-400';
+      icon.className = 'w-8 h-8 text-emerald-600';
     } else {
-      iconWrap.classList.add('bg-rose-500/15', 'border', 'border-rose-500/30');
+      iconWrap.classList.add('bg-rose-50', 'border', 'border-rose-200');
       icon.setAttribute('data-lucide', 'alert-triangle');
-      icon.className = 'w-7 h-7 text-rose-400';
+      icon.className = 'w-8 h-8 text-rose-600';
     }
     el('modalTitle').textContent = title;
     el('modalMessage').textContent = message;
@@ -57,9 +57,9 @@
       const header = document.createElement('div');
       header.className = 'flex items-center gap-3 mb-3';
       header.innerHTML =
-        '<h3 class="text-sm font-semibold text-white">' + block.label + '</h3>' +
-        '<span class="text-xs text-slate-500">' + block.horario + '</span>' +
-        (block.peak ? '<span class="peak-badge text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide">Alta demanda</span>' : '');
+        '<h3 class="text-lg font-bold text-slate-900">' + block.label + '</h3>' +
+        '<span class="text-sm font-medium text-slate-500">' + block.horario + '</span>' +
+        (block.peak ? '<span class="peak-badge text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">Alta demanda</span>' : '');
       section.appendChild(header);
 
       const row = document.createElement('div');
@@ -90,17 +90,17 @@
       const badge = node.querySelector('.status-badge');
       const isSelected = SELECTED && SELECTED.bloque === node.dataset.bloque && SELECTED.punto === node.dataset.punto;
 
-      node.classList.remove('is-available', 'is-occupied', 'is-selected', 'border-white/10', 'border-rose-500/30', 'border-emerald-500/20');
+      node.classList.remove('is-available', 'is-occupied', 'is-selected', 'border-slate-200', 'border-rose-300', 'border-emerald-200');
 
       if (info.ocupado) {
-        node.classList.add('is-occupied', 'border-rose-500/30');
+        node.classList.add('is-occupied', 'border-rose-300');
         badge.textContent = 'Ocupado';
-        badge.className = 'status-badge text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide bg-rose-500/15 text-rose-400 border border-rose-500/30';
+        badge.className = 'status-badge text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide bg-rose-50 text-rose-600 border border-rose-200';
       } else {
-        node.classList.add('is-available', 'border-emerald-500/20');
+        node.classList.add('is-available', 'border-emerald-200');
         badge.textContent = isSelected ? 'Seleccionado' : 'Disponible';
-        badge.className = 'status-badge text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide ' +
-          (isSelected ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20');
+        badge.className = 'status-badge text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide ' +
+          (isSelected ? 'bg-emerald-500 text-white border border-emerald-500' : 'bg-emerald-50 text-emerald-600 border border-emerald-200');
       }
 
       if (isSelected) node.classList.add('is-selected');
