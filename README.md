@@ -12,11 +12,9 @@ Sistema web de reserva de cargadores eléctricos residenciales (40 apartamentos)
 
 ## Despliegue como Web App
 
-1. **Crea el proyecto de Apps Script**
-   - Abre tu Google Sheets (o crea uno nuevo) que servirá como base de datos.
-   - Ve a `Extensiones → Apps Script`.
-   - Borra el `Code.gs` de ejemplo y pega el contenido de este `Code.gs`.
-   - Crea 3 archivos HTML nuevos (`Archivo → Nuevo → Archivo HTML`) llamados exactamente `Index`, `CSS` y `JS`, y pega el contenido correspondiente.
+1. **Proyecto de Apps Script**
+   - El proyecto ya está vinculado vía `.clasp.json` (Script ID `1IHbteoN-c4pHqmbhDOy6GlBVZ2PsDA5ZXl5Jql0GHW8vBcEYIVcREvto`) y `Code.gs` apunta explícitamente a la hoja de cálculo (`SPREADSHEET_ID` = `1pu0BreAGnUu1MOESTJoNONmfN57J25DtGgM8KU1XzZw`).
+   - Si prefieres pegar el código a mano en vez de usar `clasp push`: abre esa hoja, `Extensiones → Apps Script`, borra el `Code.gs` de ejemplo y pega el contenido de este `Code.gs`. Crea 3 archivos HTML (`Archivo → Nuevo → Archivo HTML`) llamados exactamente `Index`, `CSS` y `JS`, y pega el contenido correspondiente.
 
 2. **Configura el correo de administración**
    - En `Code.gs`, edita `CONFIG.ADMIN_EMAIL` con el correo real de administración/celaduría.

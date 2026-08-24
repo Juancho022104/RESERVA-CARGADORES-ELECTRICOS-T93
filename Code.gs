@@ -9,6 +9,7 @@
 // ───────────────────────────── CONFIGURACIÓN ─────────────────────────────
 
 const SHEET_NAME = 'Reservas';
+const SPREADSHEET_ID = '1pu0BreAGnUu1MOESTJoNONmfN57J25DtGgM8KU1XzZw';
 
 const CONFIG = {
   ADVANCE_WINDOW_HOURS: 48,          // ventana máxima de antelación
@@ -63,7 +64,7 @@ function getBootstrapData() {
 }
 
 function getSheet_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
