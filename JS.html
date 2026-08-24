@@ -1,0 +1,211 @@
+<script>
+  let BOOT = null;
+  let AVAILABILITY = {};
+  let SELECTED = null; // { bloque, punto }
+
+  const el = id => document.getElementById(id);
+
+  function todayStr() {
+    const d = new Date();
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 10);
+  }
+
+  function initLucide() {
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function showLoading(show) {
+    el('loadingState').classList.toggle('hidden', !show);
+    el('loadingState').classList.toggle('flex', show);
+  }
+
+  function showModal({ type, title, message }) {
+    const iconWrap = el('modalIconWrap');
+    const icon = el('modalIcon');
+    iconWrap.className = 'w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4';
+    if (type === 'success') {
+      iconWrap.classList.add('bg-emerald-500/15', 'border', 'border-emerald-500/30');
+      icon.setAttribute('data-lucide', 'check-circle-2');
+      icon.className = 'w-7 h-7 text-emerald-400';
+    } else {
+      iconWrap.classList.add('bg-rose-500/15', 'border', 'border-rose-500/30');
+      icon.setAttribute('data-lucide', 'alert-triangle');
+      icon.className = 'w-7 h-7 text-rose-400';
+    }
+    el('modalTitle').textContent = title;
+    el('modalMessage').textContent = message;
+    el('modalBackdrop').classList.remove('hidden');
+    el('modalBackdrop').classList.add('flex');
+    initLucide();
+  }
+
+  function hideModal() {
+    el('modalBackdrop').classList.add('hidden');
+    el('modalBackdrop').classList.remove('flex');
+  }
+
+  function buildGrid() {
+    const grid = el('blocksGrid');
+    grid.innerHTML = ''; // grid vacío: se llena clonando <template>, no con HTML por string
+    const tpl = el('slotTemplate');
+
+    BOOT.blocks.forEach(block => {
+      const section = document.createElement('div');
+      section.className = 'fade-in';
+
+      const header = document.createElement('div');
+      header.className = 'flex items-center gap-3 mb-3';
+      header.innerHTML =
+        '<h3 class="text-sm font-semibold text-white">' + block.label + '</h3>' +
+        '<span class="text-xs text-slate-500">' + block.horario + '</span>' +
+        (block.peak ? '<span class="peak-badge text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide">Alta demanda</span>' : '');
+      section.appendChild(header);
+
+      const row = document.createElement('div');
+      row.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+
+      BOOT.points.forEach(point => {
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        node.dataset.bloque = block.id;
+        node.dataset.punto = point.id;
+        node.querySelector('.point-label').textContent = point.label;
+        node.querySelector('.point-desc').textContent = point.desc;
+        node.querySelector('.point-icon').setAttribute('data-lucide', point.icon === 'plug' ? 'plug-zap' : 'zap');
+        node.addEventListener('click', () => onSlotClick(block.id, point.id));
+        row.appendChild(node);
+      });
+
+      section.appendChild(row);
+      grid.appendChild(section);
+    });
+
+    initLucide();
+  }
+
+  function refreshSlotStates() {
+    document.querySelectorAll('.slot-card').forEach(node => {
+      const key = node.dataset.bloque + '_' + node.dataset.punto;
+      const info = AVAILABILITY[key] || { ocupado: false };
+      const badge = node.querySelector('.status-badge');
+      const isSelected = SELECTED && SELECTED.bloque === node.dataset.bloque && SELECTED.punto === node.dataset.punto;
+
+      node.classList.remove('is-available', 'is-occupied', 'is-selected', 'border-white/10', 'border-rose-500/30', 'border-emerald-500/20');
+
+      if (info.ocupado) {
+        node.classList.add('is-occupied', 'border-rose-500/30');
+        badge.textContent = 'Ocupado';
+        badge.className = 'status-badge text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide bg-rose-500/15 text-rose-400 border border-rose-500/30';
+      } else {
+        node.classList.add('is-available', 'border-emerald-500/20');
+        badge.textContent = isSelected ? 'Seleccionado' : 'Disponible';
+        badge.className = 'status-badge text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide ' +
+          (isSelected ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20');
+      }
+
+      if (isSelected) node.classList.add('is-selected');
+    });
+
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const summary = el('selectionSummary');
+    const btn = el('btnConfirmar');
+    if (!SELECTED) {
+      summary.textContent = 'Ningún bloque seleccionado';
+      btn.disabled = true;
+      return;
+    }
+    const block = BOOT.blocks.find(b => b.id === SELECTED.bloque);
+    const point = BOOT.points.find(p => p.id === SELECTED.punto);
+    summary.textContent = block.label + ' (' + block.horario + ') · ' + point.label;
+    btn.disabled = false;
+  }
+
+  function onSlotClick(bloqueId, puntoId) {
+    const key = bloqueId + '_' + puntoId;
+    const info = AVAILABILITY[key];
+    if (info && info.ocupado) return;
+    SELECTED = { bloque: bloqueId, punto: puntoId };
+    refreshSlotStates();
+  }
+
+  function loadAvailability() {
+    const fecha = el('inputFecha').value;
+    if (!fecha) return;
+    showLoading(true);
+    SELECTED = null;
+    google.script.run
+      .withSuccessHandler(map => {
+        AVAILABILITY = map;
+        showLoading(false);
+        refreshSlotStates();
+      })
+      .withFailureHandler(err => {
+        showLoading(false);
+        showModal({ type: 'error', title: 'No se pudo cargar la disponibilidad', message: err.message || String(err) });
+      })
+      .getAvailability(fecha);
+  }
+
+  function onConfirmar() {
+    const apto = el('inputApto').value.trim();
+    const correo = el('inputCorreo').value.trim();
+    const fecha = el('inputFecha').value;
+
+    if (!SELECTED) return;
+    if (!apto) { showModal({ type: 'error', title: 'Falta el apartamento', message: 'Ingresa el número de tu apartamento para continuar.' }); return; }
+    if (!correo) { showModal({ type: 'error', title: 'Falta el correo', message: 'Ingresa tu correo electrónico para continuar.' }); return; }
+
+    const btn = el('btnConfirmar');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4"></i> Confirmar reserva';
+        initLucide();
+        if (res.ok) {
+          showModal({ type: 'success', title: '¡Reserva confirmada!', message: res.message + ' Recibirás un correo de confirmación.' });
+          SELECTED = null;
+          loadAvailability();
+        } else {
+          showModal({ type: 'error', title: 'No se pudo reservar', message: res.message });
+          updateSummary();
+        }
+      })
+      .withFailureHandler(err => {
+        btn.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4"></i> Confirmar reserva';
+        initLucide();
+        showModal({ type: 'error', title: 'Error inesperado', message: err.message || String(err) });
+        updateSummary();
+      })
+      .createReservation({ fecha, bloque: SELECTED.bloque, punto: SELECTED.punto, apto, correo });
+  }
+
+  function init() {
+    initLucide();
+    el('inputFecha').value = todayStr();
+    el('inputFecha').min = todayStr();
+    el('inputFecha').addEventListener('change', loadAvailability);
+    el('btnConfirmar').addEventListener('click', onConfirmar);
+    el('modalClose').addEventListener('click', hideModal);
+    el('modalBackdrop').addEventListener('click', e => { if (e.target === el('modalBackdrop')) hideModal(); });
+
+    showLoading(true);
+    google.script.run
+      .withSuccessHandler(boot => {
+        BOOT = boot;
+        buildGrid();
+        loadAvailability();
+      })
+      .withFailureHandler(err => {
+        showLoading(false);
+        showModal({ type: 'error', title: 'Error al iniciar', message: err.message || String(err) });
+      })
+      .getBootstrapData();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>

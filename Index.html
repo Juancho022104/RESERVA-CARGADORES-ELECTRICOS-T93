@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <title>Reserva de Cargadores Eléctricos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <?!= include('CSS'); ?>
+</head>
+<body class="min-h-screen">
+
+  <!-- ─────────────────────── HEADER ─────────────────────── -->
+  <header class="glass-strong sticky top-0 z-30 border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+          <i data-lucide="zap" class="w-5 h-5 text-emerald-400"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-semibold tracking-tight text-white">Cargadores Eléctricos</h1>
+          <p class="text-xs text-slate-400 -mt-0.5">Reserva de puntos de carga residencial</p>
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        <span>Reservas en tiempo real</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-5 py-8 space-y-8">
+
+    <!-- ─────────────────────── PANEL DE CONTROL ─────────────────────── -->
+    <section class="glass rounded-2xl p-5 sm:p-6 fade-in">
+      <div class="flex flex-col lg:flex-row lg:items-end gap-5 lg:gap-8">
+        <div class="flex-1">
+          <label class="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wide">Fecha de reserva</label>
+          <div class="relative">
+            <i data-lucide="calendar" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input id="inputFecha" type="date"
+              class="w-full sm:w-64 bg-black/30 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500/60" />
+          </div>
+        </div>
+
+        <div class="flex-1">
+          <label class="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wide">Apartamento</label>
+          <div class="relative">
+            <i data-lucide="home" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input id="inputApto" type="text" placeholder="Ej. 305"
+              class="w-full bg-black/30 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500/60" />
+          </div>
+        </div>
+
+        <div class="flex-1">
+          <label class="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wide">Correo electrónico</label>
+          <div class="relative">
+            <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input id="inputCorreo" type="email" placeholder="residente@correo.com"
+              class="w-full bg-black/30 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500/60" />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-4 mt-5 pt-5 border-t border-white/10 text-xs text-slate-400">
+        <div class="flex items-center gap-2"><span class="dot bg-emerald-500"></span> Disponible</div>
+        <div class="flex items-center gap-2"><span class="dot bg-rose-500"></span> Ocupado</div>
+        <div class="flex items-center gap-2"><span class="dot bg-orange-400"></span> Alta demanda</div>
+        <div class="flex items-center gap-2 ml-auto">
+          <i data-lucide="info" class="w-3.5 h-3.5"></i>
+          Máximo 48h de anticipación · 2 reservas/semana en bloques D-E · sin bloques consecutivos
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────── ESTADO DE CARGA ─────────────────────── -->
+    <div id="loadingState" class="hidden items-center justify-center gap-3 text-slate-400 text-sm py-6">
+      <div class="spinner"></div> Cargando disponibilidad…
+    </div>
+
+    <!-- ─────────────────────── GRID DE BLOQUES ─────────────────────── -->
+    <section id="blocksGrid" class="space-y-6"></section>
+
+    <!-- ─────────────────────── RESUMEN Y CONFIRMAR ─────────────────────── -->
+    <section class="glass-strong rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4 sticky bottom-4 z-20 fade-in">
+      <div class="flex-1 min-w-0">
+        <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">Selección actual</p>
+        <p id="selectionSummary" class="text-sm text-white font-medium truncate">Ningún bloque seleccionado</p>
+      </div>
+      <button id="btnConfirmar" disabled
+        class="btn-primary text-white text-sm font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 disabled:cursor-not-allowed">
+        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+        Confirmar reserva
+      </button>
+    </section>
+  </main>
+
+  <!-- ─────────────────────── PLANTILLA DE TARJETA (oculta, se clona por JS) ─────────────────────── -->
+  <template id="slotTemplate">
+    <div class="slot-card glass rounded-xl p-4 border">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center point-icon-wrap">
+          <i data-lucide="zap" class="w-4 h-4 text-slate-300 point-icon"></i>
+        </div>
+        <span class="status-badge text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide"></span>
+      </div>
+      <p class="point-label text-sm font-semibold text-white mb-0.5"></p>
+      <p class="point-desc text-xs text-slate-400 leading-snug"></p>
+    </div>
+  </template>
+
+  <!-- ─────────────────────── MODAL DE RESULTADO ─────────────────────── -->
+  <div id="modalBackdrop" class="hidden fixed inset-0 modal-backdrop z-40 items-center justify-center p-4">
+    <div class="glass-strong rounded-2xl max-w-sm w-full p-6 fade-in text-center">
+      <div id="modalIconWrap" class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4">
+        <i id="modalIcon" data-lucide="check" class="w-7 h-7"></i>
+      </div>
+      <h3 id="modalTitle" class="text-lg font-semibold text-white mb-2">Título</h3>
+      <p id="modalMessage" class="text-sm text-slate-400 leading-relaxed mb-6">Mensaje</p>
+      <button id="modalClose" class="w-full btn-primary text-white text-sm font-semibold py-3 rounded-xl">Entendido</button>
+    </div>
+  </div>
+
+  <?!= include('JS'); ?>
+</body>
+</html>
