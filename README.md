@@ -42,6 +42,19 @@ Sistema web de reserva de cargadores eléctricos residenciales (40 apartamentos)
 - **Concurrencia**: `LockService.getScriptLock()` + doble verificación de disponibilidad justo antes de escribir, para evitar reservas duplicadas ("fantasma") cuando dos vecinos reservan casi al mismo tiempo.
 - **Notificaciones**: al confirmar, se envía correo automático al residente y a la administración con `MailApp.sendEmail()`.
 
+## Despliegue automático (CI/CD con GitHub Actions)
+
+Este repo incluye `.github/workflows/deploy.yml`, que hace `clasp push` automáticamente en cada push a `claude/ev-charger-booking-system-4bfhb4` o `main` (con un chequeo de tamaño de HTML antes de subir, para evitar el bug de página en blanco de Apps Script).
+
+Para activarlo necesitas crear el secret `CLASPRC_JSON` en el repo:
+
+1. En una máquina donde ya hayas hecho `clasp login`, obtén el contenido de `~/.clasprc.json`.
+2. En GitHub: `Settings → Secrets and variables → Actions → New repository secret`.
+3. Nombre: `CLASPRC_JSON`. Valor: el contenido completo de ese archivo.
+4. **Nunca pegues ese contenido en un chat ni en el código** — solo en el campo del secret de GitHub.
+
+Importante: este workflow actualiza el código del proyecto (`clasp push`, visible en "Probar implementaciones" / la URL `@HEAD`/`/dev`), pero **no publica automáticamente** la URL pública `/exec`. Ese último paso sigue siendo manual: `Implementar → Gestionar implementaciones → editar (lápiz) → Nueva versión → Implementar`.
+
 ## Hoja "Reservas"
 
 Se crea automáticamente la primera vez que se usa el sistema, con las columnas:
